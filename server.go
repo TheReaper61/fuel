@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/logrusorgru/aurora"
 	newrelic "github.com/newrelic/go-agent"
+	log "github.com/rightjoin/rlog"
 	"github.com/rightjoin/rutl/conv"
 	"github.com/rightjoin/stak"
 	"github.com/unrolled/render"
@@ -61,10 +62,26 @@ func NewServer() Server {
 		},
 	}
 
+	// Set not-found handler
+	server.mux.NotFoundHandler = http.HandlerFunc(notFound)
+
 	// Add health service
 	server.AddService(&HealthService{})
 
 	return server
+}
+
+// A handler function for logging http404 errors.
+func notFound(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
+	uri := fmt.Sprintf("%s:%s", r.Method, r.URL.String())
+	dur := fmt.Sprintf("%.3fs", time.Now().Sub(start).Seconds())
+
+	log.Error(uri, "time", dur, "msg", "404 not found")
+
+	w.WriteHeader(http.StatusNotFound)
+	return
 }
 
 func (s *Server) DefineMiddleware(name string, fn func(http.Handler) http.Handler) {

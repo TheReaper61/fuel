@@ -25,6 +25,7 @@ require (
 	github.com/rightjoin/dorm v0.0.0-20190902072758-7d7c4c7b9d9d
 	github.com/rightjoin/fig v0.0.0-20190830074834-37f324f3ca84
 	github.com/rightjoin/log15 v0.0.0-20170202204638-998d73e2850a // indirect
+	github.com/rightjoin/rlog v0.0.0-20190322103338-552cadac61e6
 	github.com/rightjoin/rutl v0.0.0-20190429034327-6ccca6b49792
 	github.com/rightjoin/stak v0.0.0-20180921192257-6d1d77c1b652
 	github.com/sirupsen/logrus v1.4.2 // indirect
