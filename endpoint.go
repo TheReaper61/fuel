@@ -389,9 +389,18 @@ func processRequest(e *endpoint) func(http.ResponseWriter, *http.Request) {
 			} else {
 				// invoke the normal method
 				outputs = e.invoke(params...)
-				// try saving to cache
-				buf := cacheWriter.write(outputs)
-				e.myCache.Set(CacheKey(r), buf.Bytes(), e.myCacheDur)
+
+				// Types on which isNil() cannot be called
+				isTypeToIgnore := outputs[0].Kind() == reflect.Struct || outputs[0].Kind() == reflect.String
+
+				// cache the outputs only if len > 1, suggesting it is not an error
+				// plus the outputs[0] should be not nil where as the error part(outputs[1]) is nil
+				if len(outputs) > 1 && (!isTypeToIgnore && !outputs[0].IsNil()) && isNilError(outputs[1]) {
+					// try saving to cache
+					buf := cacheWriter.write(outputs)
+					e.myCache.Set(CacheKey(r), buf.Bytes(), e.myCacheDur)
+				}
+
 				// TODO: better error handling:
 				// - don't write to cache again for 5 sec
 				// - don't read from cache until that time etc

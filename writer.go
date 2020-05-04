@@ -29,6 +29,10 @@ func (s *serializer) write(r []reflect.Value) *bytes.Buffer {
 
 func (s *serializer) writeItem(j *json.Encoder, r reflect.Value, t string) {
 
+	if r.Kind() == reflect.Ptr {
+		s.writeItem(j, r.Elem(), typeSymbol(r.Elem().Type()))
+	}
+
 	switch {
 	case t == "int":
 		err := j.Encode(r.Int())
@@ -58,6 +62,17 @@ func (s *serializer) writeItem(j *json.Encoder, r reflect.Value, t string) {
 			panic(err)
 		}
 	case strings.HasPrefix(t, "sl:"):
+		err := j.Encode(r.Interface())
+		if err != nil {
+			panic(err)
+		}
+	case t == "i:.error":
+		if isNilError(r) {
+			err := j.Encode(nil)
+			if err != nil {
+				panic(err)
+			}
+		}
 		err := j.Encode(r.Interface())
 		if err != nil {
 			panic(err)
@@ -115,6 +130,13 @@ func (s *serializer) readItem(j *json.Decoder, typ reflect.Type) reflect.Value {
 			panic(err)
 		}
 		r = reflect.ValueOf(a)
+	case strings.HasPrefix(t, "i:"):
+		var i interface{}
+		err := j.Decode(&i)
+		if err != nil {
+			panic(err)
+		}
+		r = reflect.ValueOf(i)
 	default:
 		panic(fmt.Sprintf("cannot read/decode '%s' for caching", t))
 	}
